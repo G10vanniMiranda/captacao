@@ -65,7 +65,7 @@ Evidence is classified as `PASS`, `FAIL`, `NOT RUN`, or `BLOCKED`. `PASS` requir
 - **DECISION:** Node.js `24.x` is the shared local, CI, and Vercel runtime contract. `package.json` declares the runtime and CI selects the same version explicitly.
 - **DECISION:** The `quality` check installs the lockfile with `npm ci` and runs `npm run verify`. This preserves the repository scripts as the single source of truth while the command output keeps lint, typecheck, test, and build results visible.
 - **DECISION:** The independent `e2e` check installs only Playwright-managed Chromium and runs `npm run test:e2e` for every configured push and pull request.
-- **DECISION:** The immediate enforcement model will use a GitHub ruleset on `main` requiring the exact native checks `quality` and `e2e`. Ruleset changes remain a protected external operation and are not part of CI configuration.
+- **OBSERVED:** The active GitHub ruleset `main-protection` targets `main` and requires the exact native checks `quality` and `e2e`. Ruleset changes remain a protected external operation and are not part of CI configuration.
 - **DECISION:** Browser reports, traces, screenshots, and test results are uploaded only after an E2E failure, retained for seven days, and must contain synthetic data without credentials or PII.
 - **DECISION:** The workflow reads repository contents, disables persisted checkout credentials, cancels superseded runs for the same branch or pull request, and applies a 20-minute timeout to each job.
 - **DECISION:** CI receives no stored secrets, does not access provider or production resources, and does not deploy. Remote execution begins only after a separately authorized push.
@@ -77,7 +77,7 @@ Local verification and CI use the same commands: `npm run verify` for the qualit
 - **DECISION:** The GitHub Actions jobs `quality` and `e2e` are the canonical native checks for this repository. No additional commit status is synthesized for them.
 - **OBSERVED:** The previous status action produced signals redundant with the native check runs, and the synthetic `quality` status was correlated with the `e2e` job URL. The synthetic integration was therefore removed.
 - **DECISION:** Vercel Deployment Checks is deferred. No conclusion is made that the capability is permanently unsuitable; a post-build Vercel release gate may be re-evaluated when its discovery and permission model can be validated reliably.
-- **DECISION:** Immediate enforcement will be a GitHub ruleset on `main` requiring the native `quality` and `e2e` checks. Creating or changing that ruleset remains a separate protected external operation.
+- **OBSERVED:** Immediate enforcement is provided by the active GitHub ruleset `main-protection` on `main`, requiring the native `quality` and `e2e` checks. Creating or changing that ruleset remains a separate protected external operation.
 - **DECISION:** Vercel continues to deploy `main` automatically through its Git integration. Until a future Vercel release gate is explicitly approved and configured, Vercel alias assignment is not conditioned on these GitHub checks.
 - Commit, push, merge, manual deploy, rollback, environment changes, production migration, production writes, and GitHub ruleset changes remain Human Gates and are not authorized by CI configuration.
 
