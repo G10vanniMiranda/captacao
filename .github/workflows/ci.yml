@@ -10,7 +10,6 @@ on:
 
 permissions:
   contents: read
-  statuses: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -22,12 +21,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Publish quality status for Vercel
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: vercel/repository-dispatch/actions/status@v1
-        with:
-          name: quality
-
       - name: Check out repository
         uses: actions/checkout@v6.0.2
         with:
@@ -51,12 +44,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Publish e2e status for Vercel
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: vercel/repository-dispatch/actions/status@v1
-        with:
-          name: e2e
-
       - name: Check out repository
         uses: actions/checkout@v6.0.2
         with:
