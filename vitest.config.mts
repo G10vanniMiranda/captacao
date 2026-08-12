@@ -1,14 +1,12 @@
 import react from "@vitejs/plugin-react";
+import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    tsconfigPaths: true,
-  },
+  plugins: [tsconfigPaths(), react()],
   test: {
     environment: "jsdom",
-    include: ["src/**/*.test.{ts,tsx}"],
+    include: ["src/**/*.test.{ts,tsx}", "tests/**/*.test.{ts,tsx}"],
     pool: "threads",
     setupFiles: ["./vitest.setup.ts"],
   },
