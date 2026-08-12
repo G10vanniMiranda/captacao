@@ -57,7 +57,20 @@ Evidence is classified as `PASS`, `FAIL`, `NOT RUN`, or `BLOCKED`. `PASS` requir
 | `npm run test:e2e` | Start the local application and run Playwright browser tests in Chromium. |
 | `npm run verify` | Run `lint`, `typecheck`, `test`, and `build`, in that order, stopping on the first failure. |
 
-`npm run verify` intentionally excludes E2E so the default local gate stays deterministic and does not require starting a server or browser. `npm run test:e2e` is a separate mandatory gate whenever a change affects rendered UI, routing, browser behavior, or a user journey, and before release-readiness claims for the vertical slice. CI is not configured in this phase.
+`npm run verify` intentionally excludes E2E so the default local gate stays deterministic and does not require starting a server or browser. `npm run test:e2e` is a separate mandatory gate whenever a change affects rendered UI, routing, browser behavior, or a user journey, and before release-readiness claims for the vertical slice.
+
+## Continuous Integration
+
+- **DECISION:** `.github/workflows/ci.yml` runs on pushes to `main` and pull requests targeting `main`.
+- **DECISION:** Node.js `24.x` is the shared local, CI, and Vercel runtime contract. `package.json` declares the runtime and CI selects the same version explicitly.
+- **DECISION:** The `quality` check installs the lockfile with `npm ci` and runs `npm run verify`. This preserves the repository scripts as the single source of truth while the command output keeps lint, typecheck, test, and build results visible.
+- **DECISION:** The independent `e2e` check installs only Playwright-managed Chromium and runs `npm run test:e2e` for every configured push and pull request.
+- **DECISION:** Future branch protection should require the exact checks `quality` and `e2e`. Ruleset changes remain a protected external operation and are not part of CI configuration.
+- **DECISION:** Browser reports, traces, screenshots, and test results are uploaded only after an E2E failure, retained for seven days, and must contain synthetic data without credentials or PII.
+- **DECISION:** The workflow has read-only repository permission, disables persisted checkout credentials, cancels superseded runs for the same branch or pull request, and applies a 20-minute timeout to each job.
+- **DECISION:** CI receives no secrets, does not access provider or production resources, does not invoke Vercel, and cannot deploy. Remote execution begins only after a separately authorized push.
+
+Local verification and CI use the same commands: `npm run verify` for the quality job and `npm run test:e2e` for the browser job. CI adds only clean installation, the Linux runner, and the Playwright Chromium system dependencies around those contracts.
 
 ## Test Organization
 
