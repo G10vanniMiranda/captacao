@@ -1,0 +1,21 @@
+# Sensitive and environment-specific files
+**/.env
+**/.env.*
+**/*secret*
+**/credentials*
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+
+# Dependencies, generated output, and local tooling
+node_modules/
+.next/
+coverage/
+test-results/
+playwright-report/
+out/
+build/
+graphify-out/
+.graphify-tool/
+package-lock.json

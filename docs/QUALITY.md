@@ -1,0 +1,98 @@
+# Quality Strategy
+
+## Principles
+
+- **DECISION:** Quality evidence precedes completion claims.
+- **DECISION:** The vertical slice is developed through observable red-green-refactor cycles once implementation is authorized.
+- **DECISION:** Tests verify behavior rather than source-text presence or implementation details.
+- **DECISION:** No test, validation, or security control may be weakened merely to make a check pass.
+- **DECISION:** Accessibility, privacy, and attribution correctness are acceptance criteria, not later enhancements.
+- **DECISION:** Correlation identifiers, PII-safe logs, immutable submissions, reversible lead links, resource-level authorization, and serverless-safe Neon access are cross-cutting test requirements.
+
+## Required Test Layers
+
+### Domain tests
+
+Cover questionnaire branching, submission preservation, qualification outcomes, rule-version selection, reclassification history, attribution precedence, and deterministic deduplication.
+
+### Integration tests
+
+Cover persistence boundaries, atomic submission and qualification behavior, idempotent event recording, schema validation, and authorization on administrative operations.
+
+### Browser tests
+
+Cover both landing pages, both adaptive journeys, valid submission, validation failures, abandonment events, consent choices, and the qualified/unqualified result path without asserting private data in analytics.
+
+Browser tests live under `e2e/` and run against the local Next.js server with the Playwright-managed Chromium project. Traces are retained on the first retry and screenshots only on failure; generated reports and results remain untracked.
+
+### Non-functional checks
+
+Cover keyboard navigation, labels and error association, responsive behavior, metadata integrity, structured-content validation, sensitive-data redaction, and meaningful failure behavior.
+
+## Vertical-Slice Acceptance Gates
+
+- **DECISION:** One website page and one system page resolve from stable content identifiers.
+- **DECISION:** Each page starts a measurable journey and preserves essential attribution according to consent.
+- **DECISION:** Each adaptive flow validates required answers and persists the original submission once.
+- **DECISION:** Qualification records the rule-set version, result, and reasons without overwriting older evaluations.
+- **DECISION:** Missing timing or budget retains the lead and can result in an unqualified classification.
+- **DECISION:** The primary KPI can be derived by page and intent.
+- **DECISION:** No PII appears in analytics payloads, application logs, or user-facing error details.
+
+## Evidence
+
+Every implementation task must name the exact command and expected failure before implementation, then the exact command and expected passing behavior afterward. Build, lint, unit/integration tests, and browser tests are separate evidence and must be reported separately.
+
+Evidence is classified as `PASS`, `FAIL`, `NOT RUN`, or `BLOCKED`. `PASS` requires a command that completed successfully; a successful build does not substitute for test or browser evidence.
+
+## Technical Verification Contract
+
+| Command | Contract |
+| --- | --- |
+| `npm run lint` | Run the repository ESLint configuration. |
+| `npm run typecheck` | Type-check the project with TypeScript without emitting files. |
+| `npm run test` | Run deterministic Vitest unit and component tests once in jsdom. |
+| `npm run test:watch` | Run Vitest interactively during local development; this is not a release gate. |
+| `npm run build` | Produce the local Next.js production build. |
+| `npm run test:e2e` | Start the local application and run Playwright browser tests in Chromium. |
+| `npm run verify` | Run `lint`, `typecheck`, `test`, and `build`, in that order, stopping on the first failure. |
+
+`npm run verify` intentionally excludes E2E so the default local gate stays deterministic and does not require starting a server or browser. `npm run test:e2e` is a separate mandatory gate whenever a change affects rendered UI, routing, browser behavior, or a user journey, and before release-readiness claims for the vertical slice. CI is not configured in this phase.
+
+## Test Organization
+
+- Unit and component tests are colocated with source files as `src/**/*.test.ts` or `src/**/*.test.tsx`.
+- Component tests use Testing Library queries that reflect accessible user behavior and load `jest-dom` matchers from the shared Vitest setup.
+- TypeScript aliases are resolved from `tsconfig.json`; tests may import application code through `@/` exactly as production code does.
+- Browser tests live under `e2e/` and verify externally observable behavior rather than framework internals.
+- A harness test must fail for a meaningful regression. Placeholder assertions such as `expect(true).toBe(true)` are not acceptable.
+
+## Test Discipline
+
+- Do not weaken a test, remove a valid assertion, or bypass a failure merely to obtain `PASS`.
+- A bugfix should include a regression test whenever the behavior can be reproduced deterministically.
+- New business rules should follow test-driven development when appropriate: observe the relevant failure before adding implementation.
+- Prefer assertions about observable behavior. Assert implementation details only when that detail is itself a required contract.
+- Use mocks only at a justified boundary, such as an external provider, clock, browser API, or persistence adapter; do not mock the behavior under test.
+
+## Test Data Discipline
+
+- Use the smallest deterministic fixture that proves the behavior under test.
+- Do not place real PII, credentials, production identifiers, or copied production payloads in fixtures, snapshots, logs, reports, traces, or screenshots.
+- Tests must not call production, send real communications, execute real charges, or depend on production data or credentials.
+- Database integration tests introduced with the vertical slice must use an explicitly authorized isolated test database and must refuse production-like targets.
+- Original submission immutability, reversible lead consolidation, correlation identifiers, and PII-safe observability require direct positive and negative evidence when those boundaries are implemented.
+
+## Coverage Policy
+
+No arbitrary global percentage is imposed at the harness stage. Coverage expectations are risk-based: business rules, security and authorization boundaries, privacy controls, immutable data behavior, deduplication, and failure paths require direct tests. Coverage tooling or thresholds may be added only when the resulting signal is actionable and the team agrees on the enforcement policy.
+
+## Methodology Integration
+
+Superpowers provides development methodology, not authority. Implementation should use observable red-green-refactor cycles, and completion claims require fresh verification evidence. Skill recommendations remain subordinate to `AGENTS.md`, including all Human Gates for commits, external changes, deployments, migrations, and production writes.
+
+## Open Questions
+
+- **OPEN QUESTION:** Local/test database strategy and isolation model.
+- **OPEN QUESTION:** Accessibility automation tool and manual review checklist.
+- **OPEN QUESTION:** Performance budgets for landing pages and journey interactions.
